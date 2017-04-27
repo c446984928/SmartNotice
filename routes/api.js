@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var eventModel = require('../models/event');
 var log = require('../utils/logger');
-
+var ebus = require('../utils/eventBus');
 //todo 权限考虑
 
 //############# EVENT
@@ -27,7 +27,7 @@ router.get('/event', function (req, res, next) {
         })
         .catch(function (err) {
             log.error('[get event]' + err.message, err.stack);
-            res.send([]);
+            res.status(500).send({error: err.message});
         });
 });
 
@@ -41,7 +41,7 @@ router.post('/event', function (req, res, next) {
         })
         .catch(function (err) {
             log.error('[post event]' + err.message, err.stack);
-            res.send({});
+            res.status(500).send({error: err.message});
         });
 });
 
@@ -68,7 +68,47 @@ router.delete('/target-user', function (req, res, next) {
 //trigger-event
 router.post('/trigger-event', function (req, res, next) {
     //todo module eventName detail
-    res.send('respond with a resource');
+    var paras = req.body || {};
+    log.info('[trigger-event]' + JSON.stringify(paras));
+    var module = paras.module || '';
+    var eventName = paras.eventName || '';
+    var channelName = paras.channelName || '';
+    var targetUser = paras.targetUser || '';
+    var detail = paras.detail || '';
+
+    if (module && eventName) {
+        eventModel.findOne({eventName: new RegExp(eventName, 'i'), module: new RegExp(module, 'i')})
+            .then(function (event) {
+                if (!event) {
+                    return res.status(400).send({error: 'check input'});
+                }
+                var channelList = event.channelList || [];
+                channelList.forEach(function (channel) {
+                    if (channel.enable) {
+                        ebus.emit('trigger-' + channel.channelName, {
+                            module:module,
+                            eventName: eventName,
+                            targetUser: channel.targetUser,
+                            detail: detail,
+                            template: channel.template
+                        })
+                    }
+                });
+                res.send({});
+            })
+            .catch(function (err) {
+                log.error('[trigger-event]' + err.message, err.stack);
+                res.status(500).send({error: err.message});
+            })
+    } else if (channelName && targetUser) {
+        ebus.emit('trigger-' + channelName, {
+            targetUser: targetUser,
+            detail: detail
+        });
+        res.send({});
+    } else {
+        return res.status(400).send({error: 'check input'});
+    }
 });
 
 //############# HISTORY
