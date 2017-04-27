@@ -9,7 +9,8 @@ var config = {
     },
 
     EMAIL: {
-
+        host: "10.64.1.85",
+        port: 25
     }
 };
 

@@ -4,9 +4,9 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var ebus = require('./utils/eventBus');
+var ebus = require('./helpers/eventBus');
+var eventListener = require('./helpers/eventListener');
 var routes = require('./routes');
-var channels = require('./channels');
 
 var app = express();
 
@@ -23,7 +23,7 @@ mongoose.Promise = require('bluebird');
 mongoose.connect(require('config').database.mongoUrl);
 
 //register NOTICE handlers
-channels.regHandler();
+eventListener.regChannelHandler();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

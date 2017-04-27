@@ -8,10 +8,13 @@ var nodemailer = require('nodemailer');
 var log = require('../utils/logger');
 var _ = require('lodash');
 
+var channelName = "EMAIL";
+var channelDesc = "for send email notice";
+
 module.exports = {
-    name: "EMAIL",
-    desc: "for send email notice",
-    handler: function (options) {
+    name: channelName,
+    desc: channelDesc,
+    handler: function (options,triggerId) {
         var targetUser = options.targetUser;
         if (!targetUser) {
             return;
@@ -21,10 +24,7 @@ module.exports = {
             detail = options.detail || '',
             template = options.template || '';
 
-        var transporter = nodemailer.createTransport({
-            host: "10.64.1.85",
-            port: 25
-        });
+        var transporter = nodemailer.createTransport(config);
 
         var mailOptions = {
             from: '"SmartNotice" <no-reply@SmartNotice>', // sender address
@@ -40,13 +40,17 @@ module.exports = {
                 new Promise(function (resolve, reject) {
                     transporter.sendMail(option,function (err,info) {
                         if (err){
-                            var ret = {};
-                            ret[user] = [1,err];
-                            resolve(ret);
+                            resolve({
+                                targetUser: user,
+                                success: 0,
+                                info: err
+                            });
                         }else {
-                            var ret = {};
-                            ret[user] = [0,info];
-                            resolve(ret);
+                            resolve({
+                                targetUser: user,
+                                success: 1,
+                                info: info
+                            });
                         }
                     });
                 })
@@ -55,8 +59,12 @@ module.exports = {
 
         Promise.all(mailTasks)
             .then(function (results) {
-                //todo emit 事件 存储通知结果
-                log.info('[EMAIL results]'+JSON.stringify(_.merge.apply(this,results)));
+                process.emit('notice-result',{
+                    channelName: channelName,
+                    results: results,
+                    triggerId: triggerId
+                });
+                log.info('[EMAIL results]'+JSON.stringify(results));
             })
     }
 };
