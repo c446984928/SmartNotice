@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const eventModel = require('../models/event');
 const triggerModel = require('../models/trigger');
+const channels = require('../channels');
 const log = require('../utils/logger');
 const ebus = require('../helpers/eventBus');
 const _ = require('lodash');
@@ -74,6 +75,59 @@ router.delete('/event', function (req, res, next) {
         });
 });
 
+//############# CHANNEL
+//get all available channel
+router.get('/channel', function (req, res, next) {
+    let channelList = [];
+    for (let channel of channels){
+        channelList.push({
+            name: channel.name,
+            desc: channel.desc
+        })
+    }
+    res.send(channelList);
+});
+
+//update channel to a event
+router.post('/channel', function (req, res, next) {
+    let event = req.body;
+    if (!event.eventName || !event.module || !event.channel) {
+        return res.status(400).send({error: 'check input'});
+    }
+    log.info('[update channel]' + JSON.stringify(event));
+    eventModel.findOne({eventName: event.eventName, module: event.module})
+        .then(doc => {
+            return doc.updateChannel(event.channel);
+        })
+        .then(doc => {
+            res.send(doc)
+        })
+        .catch(err => {
+            log.error('[update channel]' + err.message, err.stack);
+            res.status(500).send({error: err.message});
+        });
+});
+
+//remove channel from a event
+router.delete('/channel', function (req, res, next) {
+    let event = req.body;
+    if (!event.eventName || !event.module || !event.channelName) {
+        return res.status(400).send({error: 'check input'});
+    }
+    log.info('[delete channel]' + JSON.stringify(event));
+    eventModel.findOne({eventName: event.eventName, module: event.module})
+        .then(doc => {
+            return doc.removeChannel(event.channelName);
+        })
+        .then(doc => {
+            res.send(doc)
+        })
+        .catch(err => {
+            log.error('[delete channel]' + err.message, err.stack);
+            res.status(500).send({error: err.message});
+        });
+});
+
 //############# TARGET-USER
 //add target user to a event/channel
 router.post('/target-user', function (req, res, next) {
@@ -115,50 +169,25 @@ router.delete('/target-user', function (req, res, next) {
         });
 });
 
-//############# CHANNEL
-//update channel to a event
-router.post('/channel', function (req, res, next) {
-    let event = req.body;
-    if (!event.eventName || !event.module || !event.channel) {
-        return res.status(400).send({error: 'check input'});
-    }
-    log.info('[update channel]' + JSON.stringify(event));
-    eventModel.findOne({eventName: event.eventName, module: event.module})
-        .then(doc => {
-            return doc.updateChannel(event.channel);
-        })
-        .then(doc => {
-            res.send(doc)
-        })
-        .catch(err => {
-            log.error('[update channel]' + err.message, err.stack);
-            res.status(500).send({error: err.message});
-        });
-});
-
-//remove channel from a event
-router.delete('/channel', function (req, res, next) {
-    let event = req.body;
-    if (!event.eventName || !event.module || !event.channelName) {
-        return res.status(400).send({error: 'check input'});
-    }
-    log.info('[delete channel]' + JSON.stringify(event));
-    eventModel.findOne({eventName: event.eventName, module: event.module})
-        .then(doc => {
-            return doc.removeChannel(event.channelName);
-        })
-        .then(doc => {
-            res.send(doc)
-        })
-        .catch(err => {
-            log.error('[delete channel]' + err.message, err.stack);
-            res.status(500).send({error: err.message});
-        });
-});
-
-
 //############# TRIGGER
-//trigger
+//get trigger
+router.get('/trigger',function (req, res, next) {
+    let paras = req.query || {};
+    log.info('[get trigger]' + JSON.stringify(paras));
+    let module = paras.module || '.*.*';
+    let eventName = paras.eventName || '.*.*';
+    triggerModel.find({
+            eventName: new RegExp(eventName, 'i'),
+            module: new RegExp(module, 'i')
+        })
+        .then(triggers => res.send(triggers))
+        .catch(err => {
+            log.error('[get event]' + err.message, err.stack);
+            res.status(500).send({error: err.message});
+        });
+});
+
+//trigger a notice
 router.post('/trigger', function (req, res, next) {
     var ip = req.headers['x-forwarded-for'] || req.ip || req._remoteAddress || (req.connection && req.connection.remoteAddress) || '0.0.0.0';
     var userAgent = req.headers['user-agent'] || '';
@@ -220,6 +249,7 @@ router.post('/trigger', function (req, res, next) {
         });
 
 });
+
 
 
 module.exports = router;

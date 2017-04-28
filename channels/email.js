@@ -2,39 +2,38 @@
 /**
  * Created by calvin_chen on 2017/4/26.
  */
+const config = require('config').EMAIL;
+const nodemailer = require('nodemailer');
+const log = require('../utils/logger');
+const _ = require('lodash');
 
-var config = require('config').EMAIL;
-var nodemailer = require('nodemailer');
-var log = require('../utils/logger');
-var _ = require('lodash');
-
-var channelName = "EMAIL";
-var channelDesc = "for send email notice";
+const channelName = "EMAIL";
+const channelDesc = "for send email notice";
 
 module.exports = {
     name: channelName,
     desc: channelDesc,
     handler: function (options,triggerId) {
-        var targetUser = options.targetUser;
+        let targetUser = options.targetUser;
         if (!targetUser) {
             return;
         }
-        var module = options.module || '',
+        let module = options.module || '',
             eventName = options.eventName || '',
             detail = options.detail || '',
             template = options.template || '';
 
-        var transporter = nodemailer.createTransport(config);
+        let transporter = nodemailer.createTransport(config);
 
-        var mailOptions = {
-            from: '"SmartNotice" <no-reply@SmartNotice>', // sender address
+        let mailOptions = {
+            from: module+ ' ' + "<no-reply@SmartNotice.SkyAid>", // sender address
             subject: (module || eventName) ? module + '-' + eventName : detail, // Subject line
-            text: 'Module: '+(module||'unknown')+'\n' +'Event: '+ (eventName||'unknown') + '\n' + 'Detail: '+(detail||'unknown')
+            text: 'Module: ' + (module || 'unknown') + '\n' + 'Event: ' + (eventName || 'unknown') + '\n' + 'Detail: ' + (detail || 'unknown')
         };
 
-        var mailTasks = [];
+        let mailTasks = [];
         targetUser.forEach(function (user) {
-            var option = _.cloneDeep(mailOptions);
+            let option = _.cloneDeep(mailOptions);
             option.to = user;
             mailTasks.push(
                 new Promise(function (resolve, reject) {

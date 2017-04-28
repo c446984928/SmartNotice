@@ -1,5 +1,5 @@
 'use strict';
-var logger = require('./../utils/logger');
+const logger = require('./../utils/logger');
 const EventEmitter = require('events');
 const emitter = new EventEmitter();
 
