@@ -188,7 +188,7 @@ router.get('/trigger',function (req, res, next) {
     triggerModel.find({
             eventName: new RegExp(eventName, 'i'),
             module: new RegExp(module, 'i')
-        })
+        }).sort({"createdAt":-1}).exec()
         .then(triggers => res.send(triggers))
         .catch(err => {
             log.error('[get event]' + err.message, err.stack);
