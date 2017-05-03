@@ -17,13 +17,22 @@ router.get('/event', function (req, res, next) {
     let eventName = paras.eventName || '.*.*';
     let channelName = paras.channelName || '.*.*';
     let targetUser = paras.targetUser || '.*.*';
-    eventModel.find({
+    let queryObject = {
+        eventName: new RegExp(eventName, 'i'),
+        module: new RegExp(module, 'i'),
+        channelList: {
+            $elemMatch: {channelName: new RegExp(channelName, 'i'), targetUser: {$in: [new RegExp(targetUser, 'i')]}}
+        }
+    };
+    //fixbug no channelList event can't query out
+    if (!paras.channelName && !paras.targetUser){
+        queryObject = {
             eventName: new RegExp(eventName, 'i'),
-            module: new RegExp(module, 'i'),
-            channelList: {
-                $elemMatch: {channelName: new RegExp(channelName, 'i'), targetUser: {$in: [new RegExp(targetUser, 'i')]}}
-            }
-        })
+            module: new RegExp(module, 'i')
+        };
+    }
+
+    eventModel.find(queryObject)
         .then(function (events) {
             res.send(events);
         })
@@ -60,7 +69,7 @@ router.post('/event', function (req, res, next) {
 
 //delete event
 router.delete('/event', function (req, res, next) {
-    var event = req.body;
+    var event = req.query;
     if (!event.eventName || !event.module) {
         return res.status(400).send({error: 'check input'});
     }
@@ -110,7 +119,7 @@ router.post('/channel', function (req, res, next) {
 
 //remove channel from a event
 router.delete('/channel', function (req, res, next) {
-    let event = req.body;
+    let event = req.query;
     if (!event.eventName || !event.module || !event.channelName) {
         return res.status(400).send({error: 'check input'});
     }
@@ -201,13 +210,13 @@ router.post('/trigger', function (req, res, next) {
     var detail = paras.detail || '';
 
     triggerModel.create({
-        ip: ip,
-        userAgent: userAgent,
-        eventName: eventName,
-        module: module,
-        detail: detail,
-        results: []
-    })
+            ip: ip,
+            userAgent: userAgent,
+            eventName: eventName,
+            module: module,
+            detail: detail,
+            results: []
+        })
         .then(function (model) {
             var modelId = model._id.toString();
 
