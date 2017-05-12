@@ -2,9 +2,9 @@
 /**
  * Created by calvin_chen on 2017/2/23.
  */
-var config = {
+let config = {
     database: {
-        // mongoUrl: 'mongodb://node0.mongo.skydns.local,node1.mongo.skydns.local,node2.mongo.skydns.local/app_server_dev?replicaSet=rs0&authSource=admin'
+        // mongoUrl: 'mongodb://node1.mongo-rs0.service.consul,node2.mongo-rs0.service.consul,node3.mongo-rs0.service.consul/smart_notice?replicaSet=rs0&authSource=admin'
         mongoUrl: 'mongodb://127.0.0.1:27017/smart-notice'
     },
 

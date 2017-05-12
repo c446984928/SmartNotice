@@ -60,8 +60,8 @@ var logger = new (winston.Logger)({
     exitOnError: false,
     transports: [
         ConsoleTransports,
-        fileTransports,
-        errTransports
+        // fileTransports,
+        // errTransports
     ]
 });
 
