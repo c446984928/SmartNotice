@@ -202,7 +202,7 @@ router.post('/trigger', function (req, res, next) {
     var userAgent = req.headers['user-agent'] || '';
 
     var paras = req.body || {};
-    log.info('[trigger]' + ip + userAgent + JSON.stringify(paras));
+    // log.info('[trigger]' + ip + userAgent + JSON.stringify(paras));
     var module = paras.module || '';
     var eventName = paras.eventName || '';
     var channelName = paras.channelName || '';

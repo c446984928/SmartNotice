@@ -15,7 +15,7 @@ module.exports = {
     desc: channelDesc,
     handler: function (options,triggerId) {
         let targetUser = options.targetUser;
-        if (!targetUser) {
+        if (!targetUser || !targetUser.length) {
             return;
         }
         let module = options.module || '',
@@ -26,9 +26,9 @@ module.exports = {
         let transporter = nodemailer.createTransport(config);
 
         let mailOptions = {
-            from: module+ ' ' + "<no-reply@SmartNotice.SkyAid>", // sender address
-            subject: (module || eventName) ? module + '-' + eventName : detail, // Subject line
-            text: 'Module: ' + (module || 'unknown') + '\n' + 'Event: ' + (eventName || 'unknown') + '\n' + 'Detail: ' + (detail || 'unknown')
+            from: module+ ' ' + "<no-reply@smart-notice.skyaid-service.trendmicro.org>", // sender address
+            subject: module + '-' + eventName, // Subject line
+            html: detail
         };
 
         let mailTasks = [];
