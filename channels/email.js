@@ -26,7 +26,7 @@ module.exports = {
         let transporter = nodemailer.createTransport(config);
 
         let mailOptions = {
-            from: module+ ' ' + "<no-reply@smart-notice.skyaid-service.trendmicro.org>", // sender address
+            from: module+ ' ' + "<no-reply@smart-notice.org>", // sender address
             subject: module + '-' + eventName, // Subject line
             html: detail
         };

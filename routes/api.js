@@ -6,7 +6,6 @@ const channels = require('../channels');
 const log = require('../utils/logger');
 const ebus = require('../helpers/eventBus');
 const _ = require('lodash');
-//todo 权限考虑
 
 //############# EVENT
 //get event
